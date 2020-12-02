@@ -1,0 +1,123 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+from lightargs import BrightArgs
+
+
+def current_script_folder():
+    script = os.path.abspath(__file__)
+    return script
+
+def path_to_bash_scripts():
+    return current_script_folder() + / + "bash"
+
+def path_to_workspace():
+    return "/tmp/software/"
+
+def path_to_output():
+    return "/tmp/out/"
+
+def generate_bash_file(config):
+
+    # content of the bash commands generated
+    # by this function
+    bash = []
+
+    # where stdout and stderr files will be written
+    output = path_to_output()
+
+    # where the treep config folder will be cloned
+    workspace = path_to_workspace()
+    
+    bash_scripts = path_to_bash_scripts()
+
+    # CLONING TREEP CONFIG REPOS
+    # where the clone_treep_config executable is
+    treep_clone_config_script = bash_scripts + / + "clone_treep_config"
+    # treep configuration repos as set by user
+    treep_urls = config.treep
+    treep_urls = [tu for tu in treep_urls if tu is not None]
+    # adding to bash file to clone the treep repos
+    for treep_url in treep_urls:
+        bash.append("{} {} {}".format(treep_clone_config_script,
+                                      treep_url,
+                                      workspace,
+                                      output))
+
+    # CLONING TREEP PROJECT
+    treep_clone_project_script = bash_scripts + / + "treep_clone"
+    treep_project = config.project
+    bash.append("cd {}".format(workspace))
+    bash.append("{} {}".format(treep_clone_project_script,
+                               treep_project,output))
+
+    # SOURCING ROS
+    if config.ros is not None:
+        ros_source_script = bash_scripts + / + "source_ros"
+        bash.append("{} {} {}".format(ros_source_script,
+                                   config.ros,
+                                   output))
+        
+    # COMPILING
+    colcon_compile_script = bash_scripts + / + "colcon_build"
+    bash.append("cd {}/workspace/".format(workspace))
+    bash.append(colcon_compile_script)
+
+    # UNIT TESTS
+    if config.unit_tests:
+        colcon_unit_tests_script = bash_scripts + / + "colcon_tests"
+        bash.append("cd {}/workspace/".format(workspace))
+        bash.append(colcon_unit_tests_script)
+    
+
+    # GRAPH
+    if config.graph:
+        
+    
+    # returning bash commands
+    return "\n".join(bash)
+    
+        
+
+    
+
+
+def configure():
+    config = BrightArgs("continuous integration")
+    config.add_option("treep",
+                      None,
+                      "treep configuration clone url",
+                      str,
+                      multiple_values=True)
+    config.add_option("project",
+                      None,
+                      "treep project",
+                      str)
+    config.add_operation("unit_tests",
+                         "calls the unit tests and copy related xml files to current directory")
+    config.add_operation("compile",
+                         "compile the workspace")
+    config.add_operation("graph",
+                         "generates the (pdf) dependency graph")
+    config.add_option("ros",
+                      "eloquent",
+                      "request to source the specified version of ros before compiling",
+                      str)
+
+    change_all=False
+    finished = config.dialog(change_all,sys.argv[1:])
+    if not finished:
+        return None
+    return config
+
+
+def execute():
+
+    config = configure()
+    print("\n{}\n".format(config.nb_dofs))
+
+
+if __name__ == "__main__":
+
+    execute()
