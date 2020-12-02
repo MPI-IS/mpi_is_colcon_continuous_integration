@@ -1,0 +1,6 @@
+#! /bin/bash
+
+#$1: output log folder
+
+echo "calling colcon build" >> $1/status.out
+colcon build >>$1/colcon_build.out 2>>$1/colcon_build.err

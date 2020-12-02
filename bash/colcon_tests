@@ -1,0 +1,7 @@
+#! /bin/bash
+
+# $1: output folder
+
+echo "calling colcon test" >> $1/status.out
+colcon test --event-handlers console_direct+ >>$1/colcon_tests.out 2>>$1/colcon_tests.err
+cd ..

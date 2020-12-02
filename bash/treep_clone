@@ -1,0 +1,7 @@
+#! /bin/bash
+
+# $1 : name of the treep project to clone
+# $2 : log output folder
+
+echo "calling treep --clone $1" >> $2/status.out
+treep --clone $1 >>$2/treep_clone.out

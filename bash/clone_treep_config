@@ -1,0 +1,8 @@
+#! /bin/bash
+
+# $1: url of repo to clone
+# $2: directory where to clone
+# $3: output files directory
+
+echo "calling git clone $1" >> $3/status.out
+git clone $1 $2 >>$3/clone_treep_config.out 2>>$3/clone_treep_config.err

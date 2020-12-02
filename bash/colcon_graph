@@ -1,0 +1,7 @@
+#! /bin/bash
+
+#$1 : (stdout and stderr)output folder
+#$2 : where the pdf should be copied
+echo "calling colcon graph" >> $1/status.out
+colcon graph --dot --legend | dot -Tpdf -o $2/colcon_graph.pdf
+

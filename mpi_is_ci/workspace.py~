@@ -1,0 +1,129 @@
+import os
+import tempfile
+
+
+class Workspace:
+
+    """
+    class for managing the workspace directory,
+    i.e. the folder in which repositories will
+    be cloned and source code will be compiled. 
+
+    An instance of workspace can be used with a context manager
+    to ensure deletion of the temp folder. See :py:class:create_workspace.
+
+    :param str path: if a string, the desired path to the work
+    directory (will be created if does not exist). If None,
+    a temp directory will be used
+    """
+    
+    def __init__(self,path):
+
+        # using a user defined directory
+        if path is not None:
+            os.makedirs(path)
+            self._path = path
+            self._tmp = False
+
+        # using a temp directory
+        else:
+            self._f = tempfile.TemporaryDirectory()
+            self._path = self._f.name
+            self._tmp = True
+
+
+    def get_path(self):
+
+        """
+        Returns the absolute path to the workspace 
+        """
+        
+        return self._path
+
+
+    def build():
+
+        """
+        Returns the absolute path to <instance path>/workspace/build
+        (None if does not exist)
+        """
+
+        path = os.path.join(self._path,"workspace","build")
+
+        if not os.isdir(path):
+            return None
+
+        return path
+
+
+    def install():
+
+        """
+        Returns the absolute path to <instance path>/workspace/install
+        (None if does not exist)
+        """
+
+        path = os.path.join(self._path,"workspace","install")
+
+        if not os.isdir(path):
+            return None
+
+        return path
+
+            
+    
+    def get_files(self,subdir,suffix):
+
+        """
+        Walk the directory path/subdir
+        and returns a list of the absolute paths
+        of all *suffix files found.
+        """
+
+        root = self._f+os.sep+subdir
+        found = []
+        
+        for root,dirs,files in os.walk(root):
+            for f in files:
+                found.extend([root+os.sep+f
+                              for f in files
+                              if f.endswith(suffix)])
+
+        return found
+
+        
+    def cleanup(self):
+
+        """
+        Delete the tmp directory
+        (no effect if instance created using 
+        a user defined folder)
+        """
+        
+        if self._tmp:
+            self._f.cleanup()
+
+
+    
+class create_workspace:
+
+    """
+    context manager for Workspace, ensuring deletion of the 
+    tmp file (if path is None, nothing deleted otherwise), i.e.
+    ``` with create_workspace(path) as workspace: ```
+    """
+    
+    def __init__(self,path):
+
+        self._workspace = Workspace(path)
+
+
+    def __enter__(self):
+
+        return self._workspace
+
+    def __exit__(self):
+
+        self._workspace.cleanup()
+
+            
